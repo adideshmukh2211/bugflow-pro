@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -18,45 +18,18 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install Airtable client
         run: pip install airtable-python-wrapper
 
-      - name: Write fetch.py and run it
+      - name: Run fetch script
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+        run: python fetch.py
+
+      - name: Commit & Push changes
         run: |
-          cat > fetch.py <<EOF
-import os, json
-from airtable import Airtable
-
-base_id = os.environ['AIRTABLE_BASE_ID']
-api_key = os.environ['AIRTABLE_API_KEY']
-
-at = Airtable(base_id, 'Table 1', api_key=api_key)
-rows = at.get_all(view='Grid view')
-
-bugs = []
-for r in rows:
-    f = r['fields']
-    bugs.append({
-        'name': f.get('Name', ''),
-        'email': f.get('Email', ''),
-        'description': f.get('Description', ''),
-        'priority': f.get('Priority', ''),
-        'screenshot': f.get('Screenshot', [{}])[0].get('url', ''),
-        'created_at': r.get('createdTime', '')
-    })
-
-with open('bugs.json', 'w') as fp:
-    json.dump(bugs, fp, indent=2)
-EOF
-          python3 fetch.py
-
-      - name: Commit & Push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "actions@github.com"
-          git add bugs.json || echo "Nothing to add"
-          git diff --cached --quiet || git commit -m "chore: sync bugs from Airtable"
-          git push
+          git config user.name 'github-actions[bot]'
+          git config user.email 'actions@github.com'
+          git add bugs.json
+          git diff --cached --quiet || (git commit -m 'chore: sync bugs from Airtable' && git push)
