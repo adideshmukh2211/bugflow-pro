@@ -21,12 +21,13 @@ jobs:
       - name: Install dependencies
         run: pip install airtable-python-wrapper
 
-      - name: Write and run fetch script
+      - name: Write fetch.py and run it
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
         run: |
-          echo "import os, json
+          cat > fetch.py <<EOF
+import os, json
 from airtable import Airtable
 
 base_id = os.environ['AIRTABLE_BASE_ID']
@@ -48,7 +49,8 @@ for r in rows:
     })
 
 with open('bugs.json', 'w') as fp:
-    json.dump(bugs, fp, indent=2)" > fetch.py
+    json.dump(bugs, fp, indent=2)
+EOF
           python3 fetch.py
 
       - name: Commit & Push
