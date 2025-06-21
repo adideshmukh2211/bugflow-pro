@@ -19,10 +19,9 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install airtable-python-wrapper
+        run: pip install airtable-python-wrapper
 
-      - name: Fetch records from Airtable
+      - name: Write and run fetch script
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
