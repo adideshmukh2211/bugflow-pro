@@ -1,16 +1,19 @@
 name: Sync Airtable → Git
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '*/30 * * * *'
-  workflow_dispatch:
+
+permissions:
+  contents: write  # ✅ REQUIRED to allow push
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -18,10 +21,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Airtable client
+      - name: Install Airtable dependency
         run: pip install airtable-python-wrapper
 
-      - name: Run fetch script
+      - name: Run fetch.py
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
@@ -33,8 +36,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
-
-          # 👇 This securely authenticates push using GitHub Actions' token
+          
+          # ✅ This authenticates push using the token
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
 
           git add bugs.json
