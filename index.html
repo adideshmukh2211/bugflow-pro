@@ -1,33 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>BugFlow Pro – Dashboard</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    .bug { border: 1px solid #ccc; margin: 1rem 0; padding: 1rem; }
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    .bug {
+      border: 1px solid #ddd;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .bug h3 {
+      margin: 0;
+    }
+    .bug small {
+      color: #666;
+    }
+    .bug a {
+      color: #007bff;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <h1>🪲 BugFlow Pro – Live Bug Reports</h1>
-  <div id="list">Loading…</div>
+  <div id="bugs">Loading bug reports…</div>
+
   <script>
     fetch('bugs.json')
-      .then(r => r.json())
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to fetch bugs.json");
+        return response.json();
+      })
       .then(bugs => {
-        const container = document.getElementById('list');
+        const container = document.getElementById('bugs');
         container.innerHTML = '';
-        bugs.forEach(b => {
+
+        if (!bugs.length) {
+          container.innerHTML = '<p>No bugs reported yet.</p>';
+          return;
+        }
+
+        bugs.forEach(bug => {
           const div = document.createElement('div');
           div.className = 'bug';
           div.innerHTML = `
-            <strong>${b.priority}</strong>: ${b.description}<br/>
-            Submitted by: ${b.name} (${b.email})<br/>
-            <a href="${b.screenshot}" target="_blank">View Screenshot</a><br/>
-            <em>${b.created_at}</em>
+            <h3>🚨 ${bug.priority} Priority Bug</h3>
+            <p>${bug.description}</p>
+            <p><strong>Submitted by:</strong> ${bug.name} (${bug.email})</p>
+            <p><a href="${bug.screenshot}" target="_blank">📸 View Screenshot</a></p>
+            <small>🕒 ${new Date(bug.created_at).toLocaleString()}</small>
           `;
           container.appendChild(div);
         });
+      })
+      .catch(err => {
+        document.getElementById('bugs').innerHTML = '⚠️ Could not load bugs.json';
+        console.error(err);
       });
   </script>
 </body>
